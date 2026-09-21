@@ -6,6 +6,7 @@ charset-normalizer==3.5.1
 cryptography==50.0.1
 defusedxml==0.7.1
 Django==6.1.1
+django-unfold==0.107.0
 djangorestframework==3.18.1
 djangorestframework_simplejwt==5.5.1
 djoser==2.3.4
@@ -15,6 +16,7 @@ inflection==0.5.1
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 oauthlib==3.3.1
+pillow==12.3.0
 psycopg2-binary==2.9.13
 pycparser==3.0
 PyJWT==2.14.0
