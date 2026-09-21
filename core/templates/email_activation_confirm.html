@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activate account</title>
+<style>
+:root {
+  --primary: #79aec8;
+  --secondary: #417690;
+  --accent: #f5dd5d;
+  --primary-fg: #fff;
+  --body-fg: #333;
+  --body-bg: #fff;
+  --body-quiet-color: #666;
+  --header-bg: var(--secondary);
+  --header-link-color: var(--primary-fg);
+  --link-fg: #447e9b;
+  --link-hover-color: #036;
+  --border-color: #ccc;
+  --error-fg: #ba2121;
+  --message-success-bg: #dfd;
+  --message-error-bg: #ffefef;
+  --button-fg: #fff;
+  --button-bg: var(--secondary);
+  --button-hover-bg: #609ab6;
+  --font-family-primary: "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-family-primary);
+  background: #f8f8f8;
+  color: var(--body-fg);
+  font-size: 14px;
+}
+#header { background: var(--header-bg); color: var(--header-link-color); padding: 12px 20px; }
+#header h1 { margin: 0; font-size: 20px; font-weight: 300; }
+#content-wrapper { display: flex; justify-content: center; padding: 40px 15px; }
+.module {
+  background: var(--body-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 420px;
+  padding: 30px 30px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  text-align: center;
+}
+.module h1 { font-size: 18px; font-weight: 400; margin: 0 0 8px; }
+.module p.help-text { color: var(--body-quiet-color); margin: 0 0 20px; font-size: 13px; line-height: 1.4; }
+#messages .msg { padding: 10px 12px; border-radius: 4px; font-size: 13px; line-height: 1.4; text-align: left; }
+#messages .msg.success { background: var(--message-success-bg); color: #094; }
+#messages .msg.error { background: var(--message-error-bg); color: var(--error-fg); }
+#messages .msg.pending { background: #f5f5f5; color: var(--body-quiet-color); }
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid #ddd;
+  border-top-color: var(--secondary);
+  border-radius: 50%;
+  margin: 0 auto 16px;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.back-link { display: block; margin-top: 16px; font-size: 13px; }
+.back-link a { color: var(--link-fg); text-decoration: none; }
+.back-link a:hover { color: var(--link-hover-color); text-decoration: underline; }
+@media (max-width: 480px) {
+  #content-wrapper { padding: 20px 10px; }
+  .module { padding: 22px 18px 16px; border-radius: 0; }
+  #header h1 { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+  <div id="header"><h1>My App administration</h1></div>
+  <div id="content-wrapper">
+    <div class="module">
+      <h1>Account activation</h1>
+      <div id="pendingState">
+        <div class="spinner"></div>
+        <p class="help-text">Activating your account, please wait...</p>
+      </div>
+      <div id="messages"></div>
+{#      <div class="back-link" id="loginLink" style="display:none;">#}
+{#        <a href="/">Continue to login</a>#}
+{#      </div>#}
+    </div>
+  </div>
+
+<script>
+// uid and token come from the Django URL, rendered server-side into this page.
+const UID = "{{ uid }}";
+const TOKEN = "{{ token }}";
+const API_ACTIVATION_URL = "/auth/users/activation/";
+
+const pendingState = document.getElementById("pendingState");
+const messages = document.getElementById("messages");
+{#const loginLink = document.getElementById("loginLink");#}
+
+async function activate() {
+  try {
+    const res = await fetch(API_ACTIVATION_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: UID, token: TOKEN }),
+    });
+
+    pendingState.style.display = "none";
+
+    if (res.status === 204 || res.ok) {
+      messages.innerHTML = '<div class="msg success">Your account has been activated successfully. You can now log in.</div>';
+      {#loginLink.style.display = "block";#}
+    } else {
+      const data = await res.json().catch(() => ({}));
+      const parts = [];
+      if (data.detail) parts.push(data.detail);
+      if (data.token) parts.push(...data.token);
+      if (data.uid) parts.push(...data.uid);
+      if (data.non_field_errors) parts.push(...data.non_field_errors);
+      messages.innerHTML = `<div class="msg error">${parts.join(" ") || "This activation link is invalid or has expired."}</div>`;
+    }
+  } catch (err) {
+    pendingState.style.display = "none";
+    messages.innerHTML = '<div class="msg error">Network error. Please try again.</div>';
+  }
+}
+
+activate();
+</script>
+</body>
+</html>
