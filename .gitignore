@@ -1,21 +1,8 @@
-# Python
 __pycache__/
-*.py[cod]
-*.log
-
-# Virtual environment
+*.pyc
+*.pyo
+.venv/
 venv/
-
-# Django
-db.sqlite3
 .env
-
-# OS
+*.sqlite3
 .DS_Store
-
-# IDE
-.vscode/
-.idea/
-
-# firebase
-serviceAccountKey.json
