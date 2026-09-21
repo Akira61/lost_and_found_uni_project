@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Set new username</title>
+<style>
+:root {
+  --primary: #79aec8;
+  --secondary: #417690;
+  --accent: #f5dd5d;
+  --primary-fg: #fff;
+  --body-fg: #333;
+  --body-bg: #fff;
+  --body-quiet-color: #666;
+  --header-bg: var(--secondary);
+  --header-link-color: var(--primary-fg);
+  --link-fg: #447e9b;
+  --link-hover-color: #036;
+  --border-color: #ccc;
+  --error-fg: #ba2121;
+  --message-success-bg: #dfd;
+  --message-error-bg: #ffefef;
+  --button-fg: #fff;
+  --button-bg: var(--secondary);
+  --button-hover-bg: #609ab6;
+  --font-family-primary: "Segoe UI", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-family-primary);
+  background: #f8f8f8;
+  color: var(--body-fg);
+  font-size: 14px;
+}
+#header { background: var(--header-bg); color: var(--header-link-color); padding: 12px 20px; }
+#header h1 { margin: 0; font-size: 20px; font-weight: 300; }
+#content-wrapper { display: flex; justify-content: center; padding: 40px 15px; }
+.module {
+  background: var(--body-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  width: 100%;
+  max-width: 420px;
+  padding: 30px 30px 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.module h1 { font-size: 18px; font-weight: 400; margin: 0 0 8px; }
+.module p.help-text { color: var(--body-quiet-color); margin: 0 0 20px; font-size: 13px; line-height: 1.4; }
+.form-row { margin-bottom: 16px; }
+.form-row label { display: block; font-weight: 600; margin-bottom: 6px; }
+.form-row input[type="text"] {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border-color);
+  border-radius: 4px; font-size: 14px;
+}
+.form-row input[type="text"]:focus { outline: none; border-color: var(--primary); }
+.submit-row { margin-top: 20px; }
+.submit-row input[type="submit"] {
+  background: var(--button-bg); color: var(--button-fg); border: none;
+  border-radius: 4px; padding: 10px 18px; font-size: 14px; cursor: pointer; width: 100%;
+}
+.submit-row input[type="submit"]:hover { background: var(--button-hover-bg); }
+.submit-row input[type="submit"]:disabled { background: #999; cursor: not-allowed; }
+#messages { margin-bottom: 16px; }
+#messages .msg { padding: 10px 12px; border-radius: 4px; font-size: 13px; line-height: 1.4; }
+#messages .msg.success { background: var(--message-success-bg); color: #094; }
+#messages .msg.error { background: var(--message-error-bg); color: var(--error-fg); }
+.back-link { display: block; margin-top: 16px; font-size: 13px; text-align: center; }
+.back-link a { color: var(--link-fg); text-decoration: none; }
+.back-link a:hover { color: var(--link-hover-color); text-decoration: underline; }
+@media (max-width: 480px) {
+  #content-wrapper { padding: 20px 10px; }
+  .module { padding: 22px 18px 16px; border-radius: 0; }
+  #header h1 { font-size: 17px; }
+}
+</style>
+</head>
+<body>
+  <div id="header"><h1>My App administration</h1></div>
+  <div id="content-wrapper">
+    <div class="module">
+      <h1>Set a new username</h1>
+      <p class="help-text">Enter the new username you'd like to use for your account.</p>
+      <div id="messages"></div>
+      <form id="confirmForm" novalidate>
+        <div class="form-row">
+          <label for="id_new_username">New username</label>
+          <input type="text" id="id_new_username" required autocomplete="username">
+        </div>
+        <div class="submit-row">
+          <input type="submit" id="submitBtn" value="Save new username">
+        </div>
+      </form>
+{#      <div class="back-link" id="loginLink" style="display:none;">#}
+{#        <a href="/">Continue to login</a>#}
+{#      </div>#}
+    </div>
+  </div>
+
+<script>
+// uid and token come from the Django URL, rendered server-side into this page.
+const UID = "{{ uid }}";
+const TOKEN = "{{ token }}";
+const API_CONFIRM_URL = "/auth/users/reset_username_confirm/";
+
+const form = document.getElementById("confirmForm");
+const messages = document.getElementById("messages");
+const btn = document.getElementById("submitBtn");
+{#const loginLink = document.getElementById("loginLink");#}
+
+form.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  messages.innerHTML = "";
+
+  const newUsername = document.getElementById("id_new_username").value.trim();
+
+  btn.disabled = true;
+  btn.value = "Saving...";
+
+  try {
+    const res = await fetch(API_CONFIRM_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: UID,
+        token: TOKEN,
+        new_username: newUsername,
+      }),
+    });
+
+    if (res.status === 204 || res.ok) {
+      messages.innerHTML = '<div class="msg success">Your username has been updated successfully.</div>';
+      form.style.display = "none";
+      {#loginLink.style.display = "block";#}
+    } else {
+      const data = await res.json().catch(() => ({}));
+      const parts = [];
+      if (data.new_username) parts.push(...data.new_username);
+      if (data.token) parts.push(...data.token);
+      if (data.uid) parts.push(...data.uid);
+      if (data.non_field_errors) parts.push(...data.non_field_errors);
+      messages.innerHTML = `<div class="msg error">${parts.join(" ") || "This reset link is invalid or has expired."}</div>`;
+      btn.disabled = false;
+      btn.value = "Save new username";
+    }
+  } catch (err) {
+    messages.innerHTML = '<div class="msg error">Network error. Please try again.</div>';
+    btn.disabled = false;
+    btn.value = "Save new username";
+  }
+});
+</script>
+</body>
+</html>
