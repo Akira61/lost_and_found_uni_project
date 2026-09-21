@@ -36,6 +36,18 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '13.61.177.8']
 # Application definition
 
 INSTALLED_APPS = [
+    # admin panel theme by unfold
+    "unfold",  # before django.contrib.admin
+    "unfold.contrib.filters",  # optional, if special filters are needed
+    "unfold.contrib.forms",  # optional, if special form elements are needed
+    "unfold.contrib.inlines",  # optional, if special inlines are needed
+    "unfold.contrib.import_export",  # optional, if django-import-export package is used
+    "unfold.contrib.guardian",  # optional, if django-guardian package is used
+    "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
+    "unfold.contrib.location_field",  # optional, if django-location-field package is used
+    "unfold.contrib.constance",  # optional, if django-constance package is used
+    "unfold.contrib.hijack",  # optional, if django-hijack package is used
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
